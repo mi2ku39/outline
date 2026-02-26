@@ -32,10 +32,8 @@ services:
     image: postgres:18
     environment:
       POSTGRES_USER: user
-      POSTGRES_PASSWORD: 9d4a8f6b0f5c3d7e1a2c4b6d8e0f1a3c
+      POSTGRES_PASSWORD: pass
       POSTGRES_DB: outline
-    volumes:
-      - database-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d outline -U user"]
       interval: 10s
@@ -45,4 +43,3 @@ services:
 volumes:
   storage-data:
   redis-data:
-  database-data:
