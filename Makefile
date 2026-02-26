@@ -7,6 +7,17 @@ up:
 build:
 	docker compose build --pull outline
 
+prod-down:
+	docker compose -f docker-compose.prod.yaml down
+
+prod-prepare:
+	yarn install --immutable
+	yarn build
+	docker compose -f docker-compose.prod.yaml build outline
+	docker compose -f docker-compose.prod.yaml up -d redis postgres
+prod-up:
+	docker compose -f docker-compose.prod.yaml up
+
 test:
 	docker compose up -d postgres
 	NODE_ENV=test yarn sequelize db:drop
@@ -25,4 +36,4 @@ destroy:
 	docker compose stop
 	docker compose rm -f
 
-.PHONY: up build destroy test watch # let's go to reserve rules names
+.PHONY: up build destroy test watch prod-prepare prod-up # let's go to reserve rules names

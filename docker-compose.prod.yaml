@@ -1,0 +1,45 @@
+services:
+  outline:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: outline-local:prod
+    env_file:
+      - ./docker.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "80:3000"
+    volumes:
+      - storage-data:/var/lib/outline/data
+
+  redis:
+    image: redis
+    command: ["redis-server", "/redis.conf"]
+    volumes:
+      - ./redis.conf:/redis.conf
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: outline
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d outline -U user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  storage-data:
+  redis-data:
