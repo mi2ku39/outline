@@ -342,6 +342,15 @@ export class Environment {
   public FORCE_HTTPS = this.toBoolean(environment.FORCE_HTTPS ?? "true");
 
   /**
+   * Trust reverse proxy headers like X-Forwarded-Host and X-Forwarded-For.
+   * Defaults to true in production and false in other environments.
+   */
+  @IsBoolean()
+  public TRUST_PROXY = this.toBoolean(
+    environment.TRUST_PROXY ?? (this.isProduction ? "true" : "false")
+  );
+
+  /**
    * Should the installation send anonymized statistics to the maintainers.
    * Defaults to true.
    */

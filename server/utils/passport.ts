@@ -14,6 +14,26 @@ import { InternalError, OAuthStateMismatchError } from "../errors";
 import fetch from "./fetch";
 import { getUserForJWT } from "./jwt";
 
+/**
+ * Resolves the request host from trusted request metadata.
+ *
+ * @param ctx The Koa context
+ * @returns The normalized host name for the current request.
+ */
+export function resolveRequestHost(ctx: Context): string {
+  const forwardedHost = ctx.get("X-Forwarded-Host");
+
+  if (ctx.app.proxy && forwardedHost) {
+    const host = forwardedHost.split(",")[0]?.trim();
+
+    if (host) {
+      return parseDomain(host).host;
+    }
+  }
+
+  return parseDomain(ctx.hostname).host;
+}
+
 export class StateStore {
   constructor(private pkce = false) {}
 
@@ -45,7 +65,7 @@ export class StateStore {
     // that is passed via query param from the auth provider component.
     const clientInput = ctx.query.client?.toString();
     const client = clientInput === Client.Desktop ? Client.Desktop : Client.Web;
-    const host = ctx.query.host?.toString() || parseDomain(ctx.hostname).host;
+    const host = ctx.query.host?.toString() || resolveRequestHost(ctx);
     const accessToken = ctx.cookies.get("accessToken");
     const state = buildState({
       host,
@@ -57,7 +77,7 @@ export class StateStore {
 
     ctx.cookies.set(this.key, state, {
       expires: addMinutes(new Date(), 10),
-      domain: getCookieDomain(ctx.hostname, env.isCloudHosted),
+      domain: getCookieDomain(resolveRequestHost(ctx), env.isCloudHosted),
     });
 
     callback(null, token);
@@ -83,7 +103,7 @@ export class StateStore {
     // Destroy the one-time pad token and ensure it matches
     ctx.cookies.set(this.key, "", {
       expires: subMinutes(new Date(), 1),
-      domain: getCookieDomain(ctx.hostname, env.isCloudHosted),
+      domain: getCookieDomain(resolveRequestHost(ctx), env.isCloudHosted),
     });
 
     if (!token || token !== providedToken) {
