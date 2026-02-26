@@ -88,6 +88,43 @@ describe("/s/:id", () => {
     expect(body).toContain(`<title>${document.title}</title>`);
   });
 
+  it("should return document title for Discord bot unfurls", async () => {
+    const document = await buildDocument();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+
+    const res = await server.get(`/s/${share.id}`, {
+      headers: {
+        "User-Agent": "Discordbot/2.0",
+      },
+    });
+    const body = await res.text();
+
+    expect(res.status).toEqual(200);
+    expect(body).toContain(`<title>${document.title}</title>`);
+  });
+
+  it("should return standard title for non-Discord bots", async () => {
+    const document = await buildDocument();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+
+    const res = await server.get(`/s/${share.id}`, {
+      headers: {
+        "User-Agent": "Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)",
+      },
+    });
+    const body = await res.text();
+
+    expect(res.status).toEqual(200);
+    expect(body).toContain("<title>Outline</title>");
+    expect(body).not.toContain(`<title>${document.title}</title>`);
+  });
+
   it("should include child documents list in markdown when includeChildDocuments is true", async () => {
     const parent = await buildDocument();
     const child1 = await buildDocument({

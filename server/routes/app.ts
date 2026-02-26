@@ -289,16 +289,21 @@ export const renderShare = async (ctx: Context, next: Next) => {
   const publicBranding =
     team?.getPreference(TeamPreference.PublicBranding) ?? false;
 
-  const title = document
-    ? document.title
-    : collection
-      ? collection.name
-      : publicBranding && team?.name
-        ? team.name
-        : undefined;
+  const isDiscordBot = /discordbot/i.test(ctx.get("user-agent"));
+  const shouldExposeShareMetadata = !ctx.userAgent.isBot || isDiscordBot;
+
+  const title = shouldExposeShareMetadata
+    ? document
+      ? document.title
+      : collection
+        ? collection.name
+        : publicBranding && team?.name
+          ? team.name
+          : undefined
+    : undefined;
 
   const content =
-    document || collection
+    shouldExposeShareMetadata && (document || collection)
       ? await DocumentHelper.toHTML(document || collection!, {
           includeStyles: false,
           includeHead: false,
@@ -322,8 +327,9 @@ export const renderShare = async (ctx: Context, next: Next) => {
   return renderApp(ctx, next, {
     title,
     description:
-      document?.getSummary() ||
-      (publicBranding && team?.description ? team.description : undefined),
+      shouldExposeShareMetadata &&
+      (document?.getSummary() ||
+        (publicBranding && team?.description ? team.description : undefined)),
     content,
     shortcutIcon:
       publicBranding && team?.avatarUrl ? team.avatarUrl : undefined,
