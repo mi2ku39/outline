@@ -326,10 +326,10 @@ export const renderShare = async (ctx: Context, next: Next) => {
   // Inject share information in SSR HTML
   return renderApp(ctx, next, {
     title,
-    description:
-      shouldExposeShareMetadata &&
-      (document?.getSummary() ||
-        (publicBranding && team?.description ? team.description : undefined)),
+    description: shouldExposeShareMetadata
+      ? document?.getSummary() ||
+        (publicBranding && team?.description ? team.description : undefined)
+      : undefined,
     content,
     shortcutIcon:
       publicBranding && team?.avatarUrl ? team.avatarUrl : undefined,
