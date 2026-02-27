@@ -58,6 +58,25 @@ describe("/s/:id", () => {
     expect(body).toContain(`<title>${document.title}</title>`);
   });
 
+  it("should return document title in html for /docs path on root share domain", async () => {
+    const document = await buildDocument();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+      domain: "docs.example.com",
+    });
+
+    const res = await server.get(`/docs/${document.urlId}`, {
+      headers: {
+        Host: share.domain,
+      },
+    });
+    const body = await res.text();
+
+    expect(res.status).toEqual(200);
+    expect(body).toContain(`<title>${document.title}</title>`);
+  });
+
   it("should return markdown when Accept header prefers text/markdown", async () => {
     const document = await buildDocument();
     const share = await buildShare({

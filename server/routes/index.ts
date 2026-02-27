@@ -192,6 +192,13 @@ router.get("/doc/:documentSlug", async (ctx, next) => {
   return next();
 });
 
+router.get("/docs/:documentSlug", async (ctx, next) => {
+  if (ctx.state?.rootShare) {
+    return renderShare(ctx, next);
+  }
+  return next();
+});
+
 router.get("/sitemap.xml", async (ctx) => {
   if (ctx.state?.rootShare) {
     ctx.redirect(`/api/shares.sitemap?id=${ctx.state?.rootShare.id}`);
