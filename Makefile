@@ -7,16 +7,22 @@ up:
 build:
 	docker compose build --pull outline
 
-prod-down:
+compose-down:
 	docker compose -f docker-compose.prod.yaml down
 
-prod-prepare:
+compose-prepare:
 	yarn install --immutable
 	yarn build
 	docker compose -f docker-compose.prod.yaml build outline
-	docker compose -f docker-compose.prod.yaml up -d redis postgres
-prod-up:
+
+compose-up:
 	docker compose -f docker-compose.prod.yaml up
+
+compose-detach:
+	docker compose -f docker-compose.prod.yaml up -d
+
+compose-stop:
+	docker compose -f docker-compose.prod.yaml stop
 
 test:
 	docker compose up -d postgres
