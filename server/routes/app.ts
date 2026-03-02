@@ -8,7 +8,7 @@ import isUUID from "validator/lib/isUUID";
 import { IntegrationType, TeamPreference } from "@shared/types";
 import { unicodeCLDRtoISO639 } from "@shared/utils/date";
 import env from "@server/env";
-import { Integration } from "@server/models";
+import { Document, Integration } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import presentEnv from "@server/presenters/env";
 import { getTeamFromContext } from "@server/utils/passport";
@@ -53,6 +53,7 @@ export const renderApp = async (
     content?: string;
     canonical?: string;
     shortcutIcon?: string;
+    socialImage?: string;
     rootShareId?: string;
     isShare?: boolean;
     analytics?: Integration<IntegrationType.Analytics>[];
@@ -65,6 +66,7 @@ export const renderApp = async (
     canonical = "",
     content = "",
     shortcutIcon = `${env.CDN_URL || ""}/images/favicon-32.png`,
+    socialImage = `${env.CDN_URL || ""}/images/Icon-1024.png`,
     allowIndexing = true,
   } = options;
 
@@ -87,6 +89,14 @@ export const renderApp = async (
 
   const { shareId } = ctx.params;
   const page = await readIndexFile();
+  const canonicalUrl = canonical || `${ctx.request.origin}${ctx.request.path}`;
+  const socialImageUrl = (() => {
+    try {
+      return new URL(socialImage, ctx.request.origin).toString();
+    } catch (_err) {
+      return undefined;
+    }
+  })();
   const environment = `
     <script nonce="${ctx.state.cspNonce}">
       window.env = ${JSON.stringify(presentEnv(env, options)).replace(
@@ -113,7 +123,18 @@ export const renderApp = async (
 
   let headTags = `
     <meta name="robots" content="${allowIndexing ? "index, follow" : "noindex, nofollow"}" />
-    <link rel="canonical" href="${escape(canonical)}" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="${escape(env.APP_NAME)}" />
+    <meta property="og:title" content="${escape(title)}" />
+    <meta property="og:description" content="${escape(description)}" />
+    <meta property="og:url" content="${escape(canonicalUrl)}" />
+    ${
+      socialImageUrl
+        ? `<meta property="og:image" content="${escape(socialImageUrl)}" />
+    <meta name="twitter:image" content="${escape(socialImageUrl)}" />`
+        : ""
+    }
+    <link rel="canonical" href="${escape(canonicalUrl)}" />
     <link
       rel="shortcut icon"
       type="image/png"
@@ -289,4 +310,44 @@ export const renderShare = async (ctx: Context, next: Next) => {
     canonical: canonicalUrl,
     allowIndexing: share?.allowIndexing,
   });
+};
+
+/**
+ * Renders a document route with SSR metadata for crawlers.
+ *
+ * @param ctx The Koa request context.
+ * @param next The next middleware function.
+ * @returns Rendered application HTML.
+ */
+export const renderDocument = async (ctx: Context, next: Next) => {
+  const { documentSlug } = ctx.params;
+
+  if (!documentSlug) {
+    return renderApp(ctx, next);
+  }
+
+  try {
+    const document = await Document.findByPk(documentSlug);
+
+    if (!document) {
+      return renderApp(ctx, next);
+    }
+
+    const content = await DocumentHelper.toHTML(document, {
+      includeStyles: false,
+      includeHead: false,
+      includeTitle: true,
+      signedUrls: true,
+    });
+
+    return renderApp(ctx, next, {
+      title: document.title,
+      description: document.getSummary(),
+      content,
+      canonical: `${ctx.request.origin}${document.url}`,
+      allowIndexing: false,
+    });
+  } catch (_err) {
+    return renderApp(ctx, next);
+  }
 };

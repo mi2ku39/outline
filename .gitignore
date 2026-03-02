@@ -22,3 +22,5 @@ data/*
 !.yarn/plugins
 !.yarn/releases
 !.yarn/sdks
+
+docker.env

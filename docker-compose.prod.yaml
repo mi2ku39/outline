@@ -3,6 +3,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        BASE_IMAGE: goka-outline-base
     image: outline-local:prod
     env_file:
       - ./docker.env

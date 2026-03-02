@@ -16,7 +16,7 @@ import { opensearchResponse } from "@server/utils/opensearch";
 import { getTeamFromContext } from "@server/utils/passport";
 import { robotsResponse } from "@server/utils/robots";
 import apexRedirect from "../middlewares/apexRedirect";
-import { renderApp, renderShare } from "./app";
+import { renderApp, renderDocument, renderShare } from "./app";
 import { renderEmbed } from "./embeds";
 import errors from "./errors";
 
@@ -135,7 +135,8 @@ router.get("/doc/:documentSlug", async (ctx, next) => {
   if (ctx.state?.rootShare) {
     return renderShare(ctx, next);
   }
-  return next();
+
+  return renderDocument(ctx, next);
 });
 
 router.get("/sitemap.xml", async (ctx) => {
