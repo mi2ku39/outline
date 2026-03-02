@@ -11,9 +11,8 @@ compose-down:
 	docker compose -f docker-compose.prod.yaml down
 
 compose-prepare:
-	yarn install --immutable
-	yarn build
-	docker compose -f docker-compose.prod.yaml build outline
+	docker build ./ -f Dockerfile.base -t goka-outline-base --no-cache
+	docker compose -f docker-compose.prod.yaml build outline --no-cache
 
 compose-up:
 	docker compose -f docker-compose.prod.yaml up
