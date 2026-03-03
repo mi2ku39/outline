@@ -17,6 +17,9 @@ compose-prepare:
 compose-up:
 	docker compose -f docker-compose.prod.yaml up
 
+compose-detach:
+	docker compose -f docker-compose.prod.yaml up -d
+
 test:
 	docker compose up -d postgres
 	NODE_ENV=test yarn sequelize db:drop
