@@ -9,26 +9,33 @@ services:
     env_file:
       - ./docker.env
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - postgres
+      - redis
     ports:
-      - "80:3000"
+      - "80:80"
     volumes:
       - storage-data:/var/lib/outline/data
+    restart: unless-stopped
 
   redis:
-    image: redis
-    command: ["redis-server", "/redis.conf"]
+    image: redis:8-alpine
+    command:
+      - redis-server
+      - --maxmemory 512mb
+      - --maxmemory-policy allkeys-lru
+      - --save ""
+      - --appendonly no
+      - /redis.conf
     volumes:
       - ./redis.conf:/redis.conf
       - redis-data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    restart: unless-stopped
 
   postgres:
     image: postgres:18
@@ -36,11 +43,20 @@ services:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: pass
       POSTGRES_DB: outline
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -d outline -U user"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+    command:
+      - postgres
+      - -c shared_buffers=512MB
+      - -c effective_cache_size=1536MB
+      - -c work_mem=16MB
+      - -c maintenance_work_mem=128MB
+      - -c max_connections=80
+    deploy:
+      resources:
+        limits:
+          memory: 1536M
+        reservations:
+          memory: 512M
+    restart: unless-stopped
 
 volumes:
   storage-data:

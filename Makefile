@@ -7,7 +7,7 @@ up:
 build:
 	docker compose build --pull outline
 
-prod-down:
+compose-down:
 	docker compose -f docker-compose.prod.yaml down
 
 compose-prepare:
@@ -34,5 +34,3 @@ watch:
 destroy:
 	docker compose stop
 	docker compose rm -f
-
-.PHONY: up build destroy test watch prod-prepare prod-up # let's go to reserve rules names
