@@ -1,0 +1,44 @@
+# Redisを永続化したい場合は--saveと--appendonlyを削除
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "127.0.0.1:6379:6379"
+    user: "redis:redis"
+    command:
+      - redis-server
+      - --maxmemory 512mb
+      - --maxmemory-policy allkeys-lru
+      - --save ""
+      - --appendonly no
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  postgres:
+    image: postgres:16
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: outline
+    user: "postgres:postgres"
+    command:
+      - postgres
+      - -c shared_buffers=512MB
+      - -c effective_cache_size=1536MB
+      # 同時実行数でメモリ使用量が増えるので、同時接続が多ければ8MBへ
+      - -c work_mem=16MB
+      - -c maintenance_work_mem=128MB
+      - -c max_connections=80
+    deploy:
+      resources:
+        limits:
+          memory: 1536M
+        reservations:
+          memory: 512M
