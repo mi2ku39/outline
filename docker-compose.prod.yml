@@ -1,6 +1,30 @@
 # Redisを永続化したい場合は--saveと--appendonlyを削除
+# 実行前に .env で SECRET_KEY と UTILS_SECRET を設定してください（README.prod.md 参照）
 
 services:
+  outline:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      NODE_ENV: production
+      URL: ${URL:-http://localhost:3000}
+      PORT: "3000"
+      DATABASE_URL: postgres://user:pass@postgres:5432/outline
+      REDIS_URL: redis://redis:6379
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY を .env に設定してください}
+      UTILS_SECRET: ${UTILS_SECRET:?UTILS_SECRET を .env に設定してください}
+      FILE_STORAGE: local
+      FILE_STORAGE_LOCAL_ROOT_DIR: /var/lib/outline/data
+    volumes:
+      - outline-data:/var/lib/outline/data
+    depends_on:
+      - redis
+      - postgres
+    restart: unless-stopped
+
   redis:
     image: redis:7-alpine
     ports:
@@ -42,3 +66,6 @@ services:
           memory: 1536M
         reservations:
           memory: 512M
+
+volumes:
+  outline-data:
