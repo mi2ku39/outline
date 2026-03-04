@@ -25,7 +25,6 @@ services:
       - --maxmemory-policy allkeys-lru
       - --save ""
       - --appendonly no
-      - /redis.conf
     volumes:
       - ./redis.conf:/redis.conf
       - redis-data:/data
@@ -38,24 +37,18 @@ services:
     restart: unless-stopped
 
   postgres:
-    image: postgres:18
+    image: postgres:17
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: pass
       POSTGRES_DB: outline
-    command:
-      - postgres
-      - -c shared_buffers=512MB
-      - -c effective_cache_size=1536MB
-      - -c work_mem=16MB
-      - -c maintenance_work_mem=128MB
-      - -c max_connections=80
     deploy:
       resources:
         limits:
           memory: 1536M
         reservations:
           memory: 512M
+    user: "postgres:postgres"
     restart: unless-stopped
 
 volumes:
