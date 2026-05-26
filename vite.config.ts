@@ -51,7 +51,7 @@ export default () =>
         registerType: "autoUpdate",
         workbox: {
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-          globPatterns: ["**/*.{js,css,ico,png,svg}"],
+          globPatterns: ["**/*.{css,ico,png,svg,webmanifest}"],
           navigateFallback: null,
           modifyURLPrefix: {
             "": `${environment.CDN_URL ?? ""}/static/`,
