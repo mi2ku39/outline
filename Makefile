@@ -12,7 +12,7 @@ compose-down:
 
 compose-prepare:
 	docker build ./ -f Dockerfile.base -t goka-outline-base --no-cache
-	docker compose -f docker-compose.prod.yaml build outline --no-cache
+	docker compose -f docker-compose.prod.yaml build outline nginx --no-cache
 
 compose-stop:
 	docker compose -f docker-compose.prod.yaml stop
