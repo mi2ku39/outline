@@ -1,13 +1,15 @@
 services:
   nginx:
-    image: nginx:1.27-alpine
+    build:
+      context: ./docker/nginx
+      dockerfile: Dockerfile
+      args:
+        BASE_IMAGE: goka-outline-base
+    image: outline-nginx-local:prod
     depends_on:
       - outline
     ports:
       - "80:80"
-    volumes:
-      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - nginx-cache:/var/cache/nginx
     restart: unless-stopped
 
   outline:
@@ -65,4 +67,3 @@ services:
 volumes:
   storage-data:
   redis-data:
-  nginx-cache:
