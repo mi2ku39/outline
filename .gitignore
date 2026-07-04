@@ -5,6 +5,7 @@ node_modules/*
 .env.local
 .env.production
 docker.env
+secrets/cloudflare_tunnel_token
 .log
 .vscode/*
 npm-debug.log
