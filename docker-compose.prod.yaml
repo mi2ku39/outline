@@ -8,8 +8,19 @@ services:
     image: outline-nginx-local:prod
     depends_on:
       - outline
-    ports:
-      - "80:80"
+    expose:
+      - "80"
+    restart: unless-stopped
+
+  cloudflared:
+    build:
+      context: ./docker/cloudflared
+      dockerfile: Dockerfile
+    image: outline-cloudflared-local:prod
+    depends_on:
+      - nginx
+    secrets:
+      - cloudflare_tunnel_token
     restart: unless-stopped
 
   outline:
@@ -67,3 +78,7 @@ services:
 volumes:
   storage-data:
   redis-data:
+
+secrets:
+  cloudflare_tunnel_token:
+    file: ./secrets/cloudflare_tunnel_token
